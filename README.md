@@ -33,16 +33,17 @@ npm install
 npm start
 ```
 
-## Deployment on deb01 (OpenClaw server)
+## Deployment
 
-The dashboard runs on deb01 (192.168.8.96) which has network access to the modem at 192.168.100.1.
+The dashboard can run on any server with network access to the modem.
 
 ```bash
-cd /root/.openclaw/workspace/glasfaser-modem-dashboard
+git clone https://github.com/torty851/glasfaser-modem-dashboard.git
+cd glasfaser-modem-dashboard
 docker-compose up -d
 ```
 
-Access: http://192.168.8.96:8080
+Access: http://localhost:8080
 
 ## Tech Stack
 
