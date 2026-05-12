@@ -118,12 +118,12 @@
                 <h2>⚡ Live Traffic (Mbit/s)</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">📥 Download (RX)</div>
-                        <div id="live-rx" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
+                        <div class="metric-label">📥 Download</div>
+                        <div id="live-download" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">📤 Upload (TX)</div>
-                        <div id="live-tx" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
+                        <div class="metric-label">📤 Upload</div>
+                        <div id="live-upload" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -152,12 +152,12 @@
                 <h2>📊 Traffic Total</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">📥 Download (RX)</div>
-                        <div id="rx-traffic" class="big-number" style="color: #2196f3;">-- <span class="unit">TB</span></div>
+                        <div class="metric-label">📥 Download</div>
+                        <div id="total-download" class="big-number" style="color: #2196f3;">-- <span class="unit">TB</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">📤 Upload (TX)</div>
-                        <div id="tx-traffic" class="big-number" style="color: #4caf50;">-- <span class="unit">TB</span></div>
+                        <div class="metric-label">📤 Upload</div>
+                        <div id="total-upload" class="big-number" style="color: #4caf50;">-- <span class="unit">TB</span></div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -211,11 +211,11 @@
             <div class="card">
                 <h2>📦 Pakete</h2>
                 <div class="metric">
-                    <span class="metric-label">📥 RX Pakete (Download)</span>
+                    <span class="metric-label">📥 RX Pakete</span>
                     <span id="rx-packets" class="metric-value">--</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">📤 TX Pakete (Upload)</span>
+                    <span class="metric-label">📤 TX Pakete</span>
                     <span id="tx-packets" class="metric-value">--</span>
                 </div>
                 <div class="metric">
@@ -237,7 +237,7 @@
         // Live traffic tracking
         let lastTxBytes = 0, lastRxBytes = 0;
         let lastTimestamp = Date.now();
-        const LIVE_HISTORY = 60; // 60 seconds at 1s interval
+        const LIVE_HISTORY = 60;
 
         // Initialize charts
         function initCharts() {
@@ -247,34 +247,11 @@
                 data: {
                     labels: [],
                     datasets: [
-                        {
-                            label: 'TX Power (dBm)',
-                            data: [],
-                            borderColor: '#4caf50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'RX Power (dBm)',
-                            data: [],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }
+                        { label: 'TX Power (dBm)', data: [], borderColor: '#4caf50', backgroundColor: 'rgba(76, 175, 80, 0.1)', tension: 0.4, fill: true },
+                        { label: 'RX Power (dBm)', data: [], borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.1)', tension: 0.4, fill: true }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 0 },
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: {
-                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
             });
 
             const trafficCtx = document.getElementById('traffic-chart').getContext('2d');
@@ -283,34 +260,11 @@
                 data: {
                     labels: [],
                     datasets: [
-                        {
-                            label: 'Download TB (RX)',
-                            data: [],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Upload TB (TX)',
-                            data: [],
-                            borderColor: '#4caf50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }
+                        { label: 'Download (TB)', data: [], borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.1)', tension: 0.4, fill: true },
+                        { label: 'Upload (TB)', data: [], borderColor: '#4caf50', backgroundColor: 'rgba(76, 175, 80, 0.1)', tension: 0.4, fill: true }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 0 },
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: {
-                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } } } }
             });
 
             const liveCtx = document.getElementById('live-traffic-chart').getContext('2d');
@@ -319,56 +273,26 @@
                 data: {
                     labels: [],
                     datasets: [
-                        {
-                            label: 'Download Mbit/s (RX)',
-                            data: [],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                            tension: 0.3,
-                            fill: true,
-                            pointRadius: 0
-                        },
-                        {
-                            label: 'Upload Mbit/s (TX)',
-                            data: [],
-                            borderColor: '#4caf50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                            tension: 0.3,
-                            fill: true,
-                            pointRadius: 0
-                        }
+                        { label: 'Download (Mbit/s)', data: [], borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.2)', tension: 0.3, fill: true, pointRadius: 0 },
+                        { label: 'Upload (Mbit/s)', data: [], borderColor: '#4caf50', backgroundColor: 'rgba(76, 175, 80, 0.2)', tension: 0.3, fill: true, pointRadius: 0 }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 0 },
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: {
-                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 5 }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 0 }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#b0bec5', maxTicksLimit: 5 }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 0 } } }
             });
         }
 
-        // Format bytes to GB/TB
         function formatBytes(bytes) {
             const gb = bytes / (1024 * 1024 * 1024);
-            if (gb > 1024) {
-                return (gb / 1024).toFixed(2) + ' TB';
-            }
+            if (gb > 1024) return (gb / 1024).toFixed(2) + ' TB';
             return gb.toFixed(2) + ' GB';
         }
 
-        // Format uptime
         function formatUptime(seconds) {
             const days = Math.floor(seconds / 86400);
             const hours = Math.floor((seconds % 86400) / 3600);
             return `${days}d ${hours}h`;
         }
 
-        // Format number
         function formatNumber(num) {
             if (num > 1000000000) return (num / 1000000000).toFixed(2) + 'B';
             if (num > 1000000) return (num / 1000000).toFixed(2) + 'M';
@@ -377,24 +301,30 @@
         }
 
         // Evaluate power level
-        function getPowerClass(dbm) {
-            if (dbm >= -8 && dbm <= -25) return 'good';
-            if (dbm >= -8 || dbm <= -28) return 'warning';
-            return 'bad';
+        // GPON optimal: -8 to -25 dBm for RX, 0.5 to 5 dBm for TX
+        function getPowerClass(dbm, isRx) {
+            if (isRx) {
+                // RX Power: -8 to -25 dBm = good, -27 or worse = bad
+                if (dbm >= -25 && dbm <= -8) return 'good';
+                if (dbm < -27 || dbm > -6) return 'bad';
+                return 'warning';
+            } else {
+                // TX Power: 0.5 to 5 dBm = good
+                if (dbm >= 0.5 && dbm <= 5) return 'good';
+                if (dbm < -2 || dbm > 7) return 'bad';
+                return 'warning';
+            }
         }
 
-        // Update dashboard
         async function updateDashboard() {
             try {
                 const response = await fetch('/api/status');
                 const result = await response.json();
-
                 const badge = document.getElementById('status-badge');
 
                 if (!result.success) {
                     badge.textContent = 'OFFLINE';
                     badge.className = 'status-badge offline';
-                    console.error('Modem error:', result.error);
                     return;
                 }
 
@@ -408,36 +338,35 @@
                 const txPower = parseFloat(data.txpower);
                 const rxPower = parseFloat(data.rxpower);
                 document.getElementById('tx-power').textContent = txPower.toFixed(2) + ' dBm';
-                document.getElementById('tx-power').className = 'metric-value ' + getPowerClass(txPower);
+                document.getElementById('tx-power').className = 'metric-value ' + getPowerClass(txPower, false);
                 document.getElementById('rx-power').textContent = rxPower.toFixed(2) + ' dBm';
-                document.getElementById('rx-power').className = 'metric-value ' + getPowerClass(rxPower);
+                document.getElementById('rx-power').className = 'metric-value ' + getPowerClass(rxPower, true);
 
-                // Traffic totals - TX=Upload, RX=Download
-                const txBytes = parseInt(data.txbytes); // Upload
-                const rxBytes = parseInt(data.rxbytes); // Download
-                document.getElementById('tx-traffic').innerHTML = formatBytes(txBytes);
-                document.getElementById('rx-traffic').innerHTML = formatBytes(rxBytes);
+                // TX = Download (Modem sends to PC), RX = Upload (Modem receives from PC)
+                const txBytes = parseInt(data.txbytes); // Download
+                const rxBytes = parseInt(data.rxbytes); // Upload
+                
+                // Total traffic display
+                document.getElementById('total-download').innerHTML = formatBytes(txBytes);
+                document.getElementById('total-upload').innerHTML = formatBytes(rxBytes);
 
-                // Live traffic calculation - TX=Upload, RX=Download
+                // Live traffic calculation
                 if (lastTxBytes > 0 && lastRxBytes > 0) {
-                    const txDiff = txBytes - lastTxBytes; // Upload diff
-                    const rxDiff = rxBytes - lastRxBytes; // Download diff
-                    const timeDiff = (now - lastTimestamp) / 1000; // seconds
+                    const txDiff = txBytes - lastTxBytes; // Download diff
+                    const rxDiff = rxBytes - lastRxBytes; // Upload diff
+                    const timeDiff = (now - lastTimestamp) / 1000;
                     
                     if (timeDiff > 0) {
-                        const txMbit = (txDiff * 8) / (timeDiff * 1000000); // Upload speed in Mbit/s
-                        const rxMbit = (rxDiff * 8) / (timeDiff * 1000000); // Download speed in Mbit/s
+                        const downloadMbit = (txDiff * 8) / (timeDiff * 1000000);
+                        const uploadMbit = (rxDiff * 8) / (timeDiff * 1000000);
                         
-                        // Upload (TX) - green
-                        document.getElementById('live-tx').innerHTML = txMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
-                        // Download (RX) - blue
-                        document.getElementById('live-rx').innerHTML = rxMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
+                        document.getElementById('live-download').innerHTML = downloadMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
+                        document.getElementById('live-upload').innerHTML = uploadMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
                         
-                        // Update live chart - Download first (blue), then Upload (green)
                         const timeLabel = new Date().toLocaleTimeString('de-DE');
                         liveTrafficChart.data.labels.push(timeLabel);
-                        liveTrafficChart.data.datasets[0].data.push(rxMbit.toFixed(1)); // Download (RX) - blue
-                        liveTrafficChart.data.datasets[1].data.push(txMbit.toFixed(1)); // Upload (TX) - green
+                        liveTrafficChart.data.datasets[0].data.push(downloadMbit.toFixed(1));
+                        liveTrafficChart.data.datasets[1].data.push(uploadMbit.toFixed(1));
                         
                         if (liveTrafficChart.data.labels.length > LIVE_HISTORY) {
                             liveTrafficChart.data.labels.shift();
@@ -469,39 +398,31 @@
                 document.getElementById('rx-packets').textContent = formatNumber(parseInt(data.rxpackets));
                 document.getElementById('rx-crc').textContent = formatNumber(parseInt(data.rxbip_crc || 0));
 
-                // Update power chart (every 5th update)
-                if (powerChart.data.labels.length === 0 || powerChart.data.labels.length % 5 === 0) {
-                    const timeLabel = new Date().toLocaleTimeString('de-DE');
-                    powerChart.data.labels.push(timeLabel);
-                    powerChart.data.datasets[0].data.push(txPower.toFixed(2));
-                    powerChart.data.datasets[1].data.push(rxPower.toFixed(2));
-
-                    if (powerChart.data.labels.length > LIVE_HISTORY) {
-                        powerChart.data.labels.shift();
-                        powerChart.data.datasets[0].data.shift();
-                        powerChart.data.datasets[1].data.shift();
-                    }
-                    powerChart.update('none');
+                // Update power chart (every update)
+                const timeLabel = new Date().toLocaleTimeString('de-DE');
+                powerChart.data.labels.push(timeLabel);
+                powerChart.data.datasets[0].data.push(txPower.toFixed(2));
+                powerChart.data.datasets[1].data.push(rxPower.toFixed(2));
+                if (powerChart.data.labels.length > LIVE_HISTORY) {
+                    powerChart.data.labels.shift();
+                    powerChart.data.datasets[0].data.shift();
+                    powerChart.data.datasets[1].data.shift();
                 }
+                powerChart.update('none');
 
-                // Update traffic total chart (every 5th update)
-                if (trafficChart.data.labels.length === 0 || trafficChart.data.labels.length % 5 === 0) {
-                    const timeLabel = new Date().toLocaleTimeString('de-DE');
-                    const txTB = txBytes / (1024 * 1024 * 1024 * 1024); // Upload in TB
-                    const rxTB = rxBytes / (1024 * 1024 * 1024 * 1024); // Download in TB
-                    trafficChart.data.labels.push(timeLabel);
-                    trafficChart.data.datasets[0].data.push(rxTB.toFixed(3)); // Download (RX) - blue
-                    trafficChart.data.datasets[1].data.push(txTB.toFixed(3)); // Upload (TX) - green
-
-                    if (trafficChart.data.labels.length > LIVE_HISTORY) {
-                        trafficChart.data.labels.shift();
-                        trafficChart.data.datasets[0].data.shift();
-                        trafficChart.data.datasets[1].data.shift();
-                    }
-                    trafficChart.update('none');
+                // Update traffic total chart (every update)
+                const downloadTB = txBytes / (1024 * 1024 * 1024 * 1024);
+                const uploadTB = rxBytes / (1024 * 1024 * 1024 * 1024);
+                trafficChart.data.labels.push(timeLabel);
+                trafficChart.data.datasets[0].data.push(downloadTB.toFixed(3));
+                trafficChart.data.datasets[1].data.push(uploadTB.toFixed(3));
+                if (trafficChart.data.labels.length > LIVE_HISTORY) {
+                    trafficChart.data.labels.shift();
+                    trafficChart.data.datasets[0].data.shift();
+                    trafficChart.data.datasets[1].data.shift();
                 }
+                trafficChart.update('none');
 
-                // Update time
                 document.getElementById('last-update').textContent = new Date().toLocaleString('de-DE');
 
             } catch (error) {
@@ -511,10 +432,9 @@
             }
         }
 
-        // Initialize and start
         initCharts();
         updateDashboard();
-        setInterval(updateDashboard, 1000); // Update every second for live traffic
+        setInterval(updateDashboard, 1000);
     </script>
 </body>
 </html>
