@@ -118,12 +118,12 @@
                 <h2>⚡ Live Traffic (Mbit/s)</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">Upload</div>
-                        <div id="live-tx" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
+                        <div class="metric-label">Download (RX)</div>
+                        <div id="live-rx" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">Download</div>
-                        <div id="live-rx" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
+                        <div class="metric-label">Upload (TX)</div>
+                        <div id="live-tx" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -152,12 +152,12 @@
                 <h2>📊 Traffic Total</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">Gesendet (TX)</div>
-                        <div id="tx-traffic" class="big-number">-- <span class="unit">GB</span></div>
+                        <div class="metric-label">Download (RX)</div>
+                        <div id="rx-traffic" class="big-number">-- <span class="unit">TB</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">Empfangen (RX)</div>
-                        <div id="rx-traffic" class="big-number">-- <span class="unit">GB</span></div>
+                        <div class="metric-label">Upload (TX)</div>
+                        <div id="tx-traffic" class="big-number" style="color: #4caf50;">-- <span class="unit">TB</span></div>
                     </div>
                 </div>
                 <div class="chart-container">
@@ -284,18 +284,18 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'TX (TB)',
+                            label: 'Download (TB)',
                             data: [],
-                            borderColor: '#ff9800',
-                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            borderColor: '#2196f3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
                             tension: 0.4,
                             fill: true
                         },
                         {
-                            label: 'RX (TB)',
+                            label: 'Upload (TB)',
                             data: [],
-                            borderColor: '#9c27b0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
                             tension: 0.4,
                             fill: true
                         }
@@ -320,19 +320,19 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'Upload (Mbit/s)',
+                            label: 'Download (Mbit/s)',
                             data: [],
-                            borderColor: '#4caf50',
-                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            borderColor: '#2196f3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: 0
                         },
                         {
-                            label: 'Download (Mbit/s)',
+                            label: 'Upload (Mbit/s)',
                             data: [],
-                            borderColor: '#2196f3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
                             tension: 0.3,
                             fill: true,
                             pointRadius: 0
@@ -434,8 +434,8 @@
                         // Update live chart
                         const timeLabel = new Date().toLocaleTimeString('de-DE');
                         liveTrafficChart.data.labels.push(timeLabel);
-                        liveTrafficChart.data.datasets[0].data.push(txMbit.toFixed(1));
-                        liveTrafficChart.data.datasets[1].data.push(rxMbit.toFixed(1));
+                        liveTrafficChart.data.datasets[0].data.push(rxMbit.toFixed(1)); // Download first
+                        liveTrafficChart.data.datasets[1].data.push(txMbit.toFixed(1)); // Upload second
                         
                         if (liveTrafficChart.data.labels.length > LIVE_HISTORY) {
                             liveTrafficChart.data.labels.shift();
@@ -485,11 +485,11 @@
                 // Update traffic total chart (every 5th update)
                 if (trafficChart.data.labels.length === 0 || trafficChart.data.labels.length % 5 === 0) {
                     const timeLabel = new Date().toLocaleTimeString('de-DE');
-                    const txGB = txBytes / (1024 * 1024 * 1024 * 1024); // TB
-                    const rxGB = rxBytes / (1024 * 1024 * 1024 * 1024); // TB
+                    const rxTB = rxBytes / (1024 * 1024 * 1024 * 1024); // TB (Download)
+                    const txTB = txBytes / (1024 * 1024 * 1024 * 1024); // TB (Upload)
                     trafficChart.data.labels.push(timeLabel);
-                    trafficChart.data.datasets[0].data.push(txGB.toFixed(3));
-                    trafficChart.data.datasets[1].data.push(rxGB.toFixed(3));
+                    trafficChart.data.datasets[0].data.push(rxTB.toFixed(3)); // Download first
+                    trafficChart.data.datasets[1].data.push(txTB.toFixed(3)); // Upload second
 
                     if (trafficChart.data.labels.length > LIVE_HISTORY) {
                         trafficChart.data.labels.shift();
