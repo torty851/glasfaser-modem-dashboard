@@ -8,7 +8,7 @@ Real-time monitoring dashboard for Telekom Glasfaser-Modem 2.
 - **Traffic monitoring**: TX/RX bytes with live graphs
 - **Device info**: Firmware, hardware revision, serial number
 - **Connection status**: Link speed, uptime, packet counts
-- **Auto-refresh**: Updates every 5 seconds
+- **Real-time updates**: Live data every second
 
 ## Data Source
 
