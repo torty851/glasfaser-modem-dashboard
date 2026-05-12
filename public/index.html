@@ -118,11 +118,11 @@
                 <h2>⚡ Live Traffic (Mbit/s)</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">Download (RX)</div>
+                        <div class="metric-label">📥 Download (RX)</div>
                         <div id="live-rx" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">Upload (TX)</div>
+                        <div class="metric-label">📤 Upload (TX)</div>
                         <div id="live-tx" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
                     </div>
                 </div>
@@ -152,11 +152,11 @@
                 <h2>📊 Traffic Total</h2>
                 <div class="traffic-grid">
                     <div>
-                        <div class="metric-label">Download (RX)</div>
-                        <div id="rx-traffic" class="big-number">-- <span class="unit">TB</span></div>
+                        <div class="metric-label">📥 Download (RX)</div>
+                        <div id="rx-traffic" class="big-number" style="color: #2196f3;">-- <span class="unit">TB</span></div>
                     </div>
                     <div>
-                        <div class="metric-label">Upload (TX)</div>
+                        <div class="metric-label">📤 Upload (TX)</div>
                         <div id="tx-traffic" class="big-number" style="color: #4caf50;">-- <span class="unit">TB</span></div>
                     </div>
                 </div>
@@ -211,12 +211,12 @@
             <div class="card">
                 <h2>📦 Pakete</h2>
                 <div class="metric">
-                    <span class="metric-label">TX Pakete</span>
-                    <span id="tx-packets" class="metric-value">--</span>
+                    <span class="metric-label">📥 RX Pakete (Download)</span>
+                    <span id="rx-packets" class="metric-value">--</span>
                 </div>
                 <div class="metric">
-                    <span class="metric-label">RX Pakete</span>
-                    <span id="rx-packets" class="metric-value">--</span>
+                    <span class="metric-label">📤 TX Pakete (Upload)</span>
+                    <span id="tx-packets" class="metric-value">--</span>
                 </div>
                 <div class="metric">
                     <span class="metric-label">RX CRC Errors</span>
@@ -284,7 +284,7 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'Download (TB)',
+                            label: 'Download TB (RX)',
                             data: [],
                             borderColor: '#2196f3',
                             backgroundColor: 'rgba(33, 150, 243, 0.1)',
@@ -292,7 +292,7 @@
                             fill: true
                         },
                         {
-                            label: 'Upload (TB)',
+                            label: 'Upload TB (TX)',
                             data: [],
                             borderColor: '#4caf50',
                             backgroundColor: 'rgba(76, 175, 80, 0.1)',
@@ -320,7 +320,7 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'Download (Mbit/s)',
+                            label: 'Download Mbit/s (RX)',
                             data: [],
                             borderColor: '#2196f3',
                             backgroundColor: 'rgba(33, 150, 243, 0.2)',
@@ -329,7 +329,7 @@
                             pointRadius: 0
                         },
                         {
-                            label: 'Upload (Mbit/s)',
+                            label: 'Upload Mbit/s (TX)',
                             data: [],
                             borderColor: '#4caf50',
                             backgroundColor: 'rgba(76, 175, 80, 0.2)',
@@ -358,7 +358,7 @@
             if (gb > 1024) {
                 return (gb / 1024).toFixed(2) + ' TB';
             }
-            return gb.toFixed(2);
+            return gb.toFixed(2) + ' GB';
         }
 
         // Format uptime
@@ -412,30 +412,32 @@
                 document.getElementById('rx-power').textContent = rxPower.toFixed(2) + ' dBm';
                 document.getElementById('rx-power').className = 'metric-value ' + getPowerClass(rxPower);
 
-                // Traffic totals
-                const txBytes = parseInt(data.txbytes);
-                const rxBytes = parseInt(data.rxbytes);
-                document.getElementById('tx-traffic').innerHTML = formatBytes(txBytes) + ' <span class="unit">TX</span>';
-                document.getElementById('rx-traffic').innerHTML = formatBytes(rxBytes) + ' <span class="unit">RX</span>';
+                // Traffic totals - TX=Upload, RX=Download
+                const txBytes = parseInt(data.txbytes); // Upload
+                const rxBytes = parseInt(data.rxbytes); // Download
+                document.getElementById('tx-traffic').innerHTML = formatBytes(txBytes);
+                document.getElementById('rx-traffic').innerHTML = formatBytes(rxBytes);
 
-                // Live traffic calculation
+                // Live traffic calculation - TX=Upload, RX=Download
                 if (lastTxBytes > 0 && lastRxBytes > 0) {
-                    const txDiff = txBytes - lastTxBytes;
-                    const rxDiff = rxBytes - lastRxBytes;
+                    const txDiff = txBytes - lastTxBytes; // Upload diff
+                    const rxDiff = rxBytes - lastRxBytes; // Download diff
                     const timeDiff = (now - lastTimestamp) / 1000; // seconds
                     
                     if (timeDiff > 0) {
-                        const txMbit = (txDiff * 8) / (timeDiff * 1000000); // bytes to Mbit/s
-                        const rxMbit = (rxDiff * 8) / (timeDiff * 1000000);
+                        const txMbit = (txDiff * 8) / (timeDiff * 1000000); // Upload speed in Mbit/s
+                        const rxMbit = (rxDiff * 8) / (timeDiff * 1000000); // Download speed in Mbit/s
                         
+                        // Upload (TX) - green
                         document.getElementById('live-tx').innerHTML = txMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
+                        // Download (RX) - blue
                         document.getElementById('live-rx').innerHTML = rxMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
                         
-                        // Update live chart
+                        // Update live chart - Download first (blue), then Upload (green)
                         const timeLabel = new Date().toLocaleTimeString('de-DE');
                         liveTrafficChart.data.labels.push(timeLabel);
-                        liveTrafficChart.data.datasets[0].data.push(rxMbit.toFixed(1)); // Download first
-                        liveTrafficChart.data.datasets[1].data.push(txMbit.toFixed(1)); // Upload second
+                        liveTrafficChart.data.datasets[0].data.push(rxMbit.toFixed(1)); // Download (RX) - blue
+                        liveTrafficChart.data.datasets[1].data.push(txMbit.toFixed(1)); // Upload (TX) - green
                         
                         if (liveTrafficChart.data.labels.length > LIVE_HISTORY) {
                             liveTrafficChart.data.labels.shift();
@@ -485,11 +487,11 @@
                 // Update traffic total chart (every 5th update)
                 if (trafficChart.data.labels.length === 0 || trafficChart.data.labels.length % 5 === 0) {
                     const timeLabel = new Date().toLocaleTimeString('de-DE');
-                    const rxTB = rxBytes / (1024 * 1024 * 1024 * 1024); // TB (Download)
-                    const txTB = txBytes / (1024 * 1024 * 1024 * 1024); // TB (Upload)
+                    const txTB = txBytes / (1024 * 1024 * 1024 * 1024); // Upload in TB
+                    const rxTB = rxBytes / (1024 * 1024 * 1024 * 1024); // Download in TB
                     trafficChart.data.labels.push(timeLabel);
-                    trafficChart.data.datasets[0].data.push(rxTB.toFixed(3)); // Download first
-                    trafficChart.data.datasets[1].data.push(txTB.toFixed(3)); // Upload second
+                    trafficChart.data.datasets[0].data.push(rxTB.toFixed(3)); // Download (RX) - blue
+                    trafficChart.data.datasets[1].data.push(txTB.toFixed(3)); // Upload (TX) - green
 
                     if (trafficChart.data.labels.length > LIVE_HISTORY) {
                         trafficChart.data.labels.shift();
