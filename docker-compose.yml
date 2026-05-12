@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  glasfaser-dashboard:
+    build: .
+    container_name: glasfaser-modem-dashboard
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - modem-network
+
+networks:
+  modem-network:
+    driver: bridge
