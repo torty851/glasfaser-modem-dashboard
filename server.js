@@ -13,7 +13,15 @@ app.use(express.static('public'));
 // Cache for modem data
 let cachedData = null;
 let lastFetch = 0;
-const CACHE_DURATION = 4000; // 4 seconds cache
+const CACHE_DURATION = 1000; // 1 second cache for live data
+
+// History storage (keep last 3600 entries = 1 hour at 1s interval)
+const history = {
+    traffic: [],
+    power: [],
+    timestamps: []
+};
+const MAX_HISTORY = 3600;
 
 // Parse modem JSON array to object
 function parseModemData(jsonArray) {
@@ -52,6 +60,27 @@ async function fetchModemData() {
     }
 }
 
+// Update history with new data
+function updateHistory(data) {
+    if (!data || !data.success) return;
+
+    const txBytes = parseInt(data.data.txbytes) || 0;
+    const rxBytes = parseInt(data.data.rxbytes) || 0;
+    const txPower = parseFloat(data.data.txpower) || 0;
+    const rxPower = parseFloat(data.data.rxpower) || 0;
+
+    history.traffic.push({ tx: txBytes, rx: rxBytes });
+    history.power.push({ tx: txPower, rx: rxPower });
+    history.timestamps.push(data.timestamp);
+
+    // Trim to max history
+    if (history.timestamps.length > MAX_HISTORY) {
+        history.traffic.shift();
+        history.power.shift();
+        history.timestamps.shift();
+    }
+}
+
 // API endpoint for modem status
 app.get('/api/status', async (req, res) => {
     const now = Date.now();
@@ -66,13 +95,42 @@ app.get('/api/status', async (req, res) => {
     cachedData = data;
     lastFetch = now;
 
+    // Update history
+    updateHistory(data);
+
     res.json(data);
+});
+
+// API endpoint for live traffic data
+app.get('/api/traffic', (req, res) => {
+    res.json({
+        history: {
+            traffic: history.traffic,
+            power: history.power,
+            timestamps: history.timestamps
+        },
+        count: history.timestamps.length
+    });
 });
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime() });
+    res.json({ 
+        status: 'ok', 
+        uptime: process.uptime(),
+        historyEntries: history.timestamps.length
+    });
 });
+
+// Start background polling for live data
+setInterval(async () => {
+    const data = await fetchModemData();
+    if (data.success) {
+        cachedData = data;
+        lastFetch = Date.now();
+        updateHistory(data);
+    }
+}, 1000); // Poll every second
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {

@@ -113,6 +113,24 @@
         <h1>🚀 Glasfaser Modem 2 Status <span id="status-badge" class="status-badge offline">OFFLINE</span></h1>
 
         <div class="grid">
+            <!-- Live Traffic -->
+            <div class="card">
+                <h2>⚡ Live Traffic (Mbit/s)</h2>
+                <div class="traffic-grid">
+                    <div>
+                        <div class="metric-label">Upload</div>
+                        <div id="live-tx" class="big-number" style="color: #4caf50;">-- <span class="unit">Mbit/s</span></div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Download</div>
+                        <div id="live-rx" class="big-number" style="color: #2196f3;">-- <span class="unit">Mbit/s</span></div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="live-traffic-chart"></canvas>
+                </div>
+            </div>
+
             <!-- Power Levels -->
             <div class="card">
                 <h2>📡 Optische Leistung</h2>
@@ -129,9 +147,9 @@
                 </div>
             </div>
 
-            <!-- Traffic -->
+            <!-- Traffic Total -->
             <div class="card">
-                <h2>📊 Traffic</h2>
+                <h2>📊 Traffic Total</h2>
                 <div class="traffic-grid">
                     <div>
                         <div class="metric-label">Gesendet (TX)</div>
@@ -214,12 +232,12 @@
 
     <script>
         // Chart instances
-        let powerChart, trafficChart;
+        let powerChart, trafficChart, liveTrafficChart;
 
-        // Data history for charts
-        const historyLength = 30;
-        const powerHistory = { tx: [], rx: [], labels: [] };
-        const trafficHistory = { tx: [], rx: [], labels: [] };
+        // Live traffic tracking
+        let lastTxBytes = 0, lastRxBytes = 0;
+        let lastTimestamp = Date.now();
+        const LIVE_HISTORY = 60; // 60 seconds at 1s interval
 
         // Initialize charts
         function initCharts() {
@@ -250,9 +268,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 0 },
                     plugins: { legend: { labels: { color: '#fff' } } },
                     scales: {
-                        x: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } },
                         y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } }
                     }
                 }
@@ -265,7 +284,7 @@
                     labels: [],
                     datasets: [
                         {
-                            label: 'TX (GB)',
+                            label: 'TX (TB)',
                             data: [],
                             borderColor: '#ff9800',
                             backgroundColor: 'rgba(255, 152, 0, 0.1)',
@@ -273,7 +292,7 @@
                             fill: true
                         },
                         {
-                            label: 'RX (GB)',
+                            label: 'RX (TB)',
                             data: [],
                             borderColor: '#9c27b0',
                             backgroundColor: 'rgba(156, 39, 176, 0.1)',
@@ -285,10 +304,49 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 0 },
                     plugins: { legend: { labels: { color: '#fff' } } },
                     scales: {
-                        x: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.1)' } },
                         y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
+
+            const liveCtx = document.getElementById('live-traffic-chart').getContext('2d');
+            liveTrafficChart = new Chart(liveCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Upload (Mbit/s)',
+                            data: [],
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Download (Mbit/s)',
+                            data: [],
+                            borderColor: '#2196f3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 0 },
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        x: { ticks: { color: '#b0bec5', maxTicksLimit: 5 }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#b0bec5' }, grid: { color: 'rgba(255,255,255,0.1)' }, min: 0 }
                     }
                 }
             });
@@ -344,6 +402,7 @@
                 badge.className = 'status-badge online';
 
                 const data = result.data;
+                const now = Date.now();
 
                 // Power levels
                 const txPower = parseFloat(data.txpower);
@@ -353,11 +412,43 @@
                 document.getElementById('rx-power').textContent = rxPower.toFixed(2) + ' dBm';
                 document.getElementById('rx-power').className = 'metric-value ' + getPowerClass(rxPower);
 
-                // Traffic
+                // Traffic totals
                 const txBytes = parseInt(data.txbytes);
                 const rxBytes = parseInt(data.rxbytes);
                 document.getElementById('tx-traffic').innerHTML = formatBytes(txBytes) + ' <span class="unit">TX</span>';
                 document.getElementById('rx-traffic').innerHTML = formatBytes(rxBytes) + ' <span class="unit">RX</span>';
+
+                // Live traffic calculation
+                if (lastTxBytes > 0 && lastRxBytes > 0) {
+                    const txDiff = txBytes - lastTxBytes;
+                    const rxDiff = rxBytes - lastRxBytes;
+                    const timeDiff = (now - lastTimestamp) / 1000; // seconds
+                    
+                    if (timeDiff > 0) {
+                        const txMbit = (txDiff * 8) / (timeDiff * 1000000); // bytes to Mbit/s
+                        const rxMbit = (rxDiff * 8) / (timeDiff * 1000000);
+                        
+                        document.getElementById('live-tx').innerHTML = txMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
+                        document.getElementById('live-rx').innerHTML = rxMbit.toFixed(1) + ' <span class="unit">Mbit/s</span>';
+                        
+                        // Update live chart
+                        const timeLabel = new Date().toLocaleTimeString('de-DE');
+                        liveTrafficChart.data.labels.push(timeLabel);
+                        liveTrafficChart.data.datasets[0].data.push(txMbit.toFixed(1));
+                        liveTrafficChart.data.datasets[1].data.push(rxMbit.toFixed(1));
+                        
+                        if (liveTrafficChart.data.labels.length > LIVE_HISTORY) {
+                            liveTrafficChart.data.labels.shift();
+                            liveTrafficChart.data.datasets[0].data.shift();
+                            liveTrafficChart.data.datasets[1].data.shift();
+                        }
+                        liveTrafficChart.update('none');
+                    }
+                }
+                
+                lastTxBytes = txBytes;
+                lastRxBytes = rxBytes;
+                lastTimestamp = now;
 
                 // Device info
                 document.getElementById('device-name').textContent = data.device_name || '--';
@@ -376,35 +467,37 @@
                 document.getElementById('rx-packets').textContent = formatNumber(parseInt(data.rxpackets));
                 document.getElementById('rx-crc').textContent = formatNumber(parseInt(data.rxbip_crc || 0));
 
-                // Update charts
-                const now = new Date();
-                const timeLabel = now.toLocaleTimeString('de-DE');
+                // Update power chart (every 5th update)
+                if (powerChart.data.labels.length === 0 || powerChart.data.labels.length % 5 === 0) {
+                    const timeLabel = new Date().toLocaleTimeString('de-DE');
+                    powerChart.data.labels.push(timeLabel);
+                    powerChart.data.datasets[0].data.push(txPower.toFixed(2));
+                    powerChart.data.datasets[1].data.push(rxPower.toFixed(2));
 
-                // Power chart
-                powerChart.data.labels.push(timeLabel);
-                powerChart.data.datasets[0].data.push(txPower);
-                powerChart.data.datasets[1].data.push(rxPower);
-
-                if (powerChart.data.labels.length > historyLength) {
-                    powerChart.data.labels.shift();
-                    powerChart.data.datasets[0].data.shift();
-                    powerChart.data.datasets[1].data.shift();
+                    if (powerChart.data.labels.length > LIVE_HISTORY) {
+                        powerChart.data.labels.shift();
+                        powerChart.data.datasets[0].data.shift();
+                        powerChart.data.datasets[1].data.shift();
+                    }
+                    powerChart.update('none');
                 }
-                powerChart.update('none');
 
-                // Traffic chart (GB)
-                const txGB = txBytes / (1024 * 1024 * 1024);
-                const rxGB = rxBytes / (1024 * 1024 * 1024);
-                trafficChart.data.labels.push(timeLabel);
-                trafficChart.data.datasets[0].data.push(txGB.toFixed(2));
-                trafficChart.data.datasets[1].data.push(rxGB.toFixed(2));
+                // Update traffic total chart (every 5th update)
+                if (trafficChart.data.labels.length === 0 || trafficChart.data.labels.length % 5 === 0) {
+                    const timeLabel = new Date().toLocaleTimeString('de-DE');
+                    const txGB = txBytes / (1024 * 1024 * 1024 * 1024); // TB
+                    const rxGB = rxBytes / (1024 * 1024 * 1024 * 1024); // TB
+                    trafficChart.data.labels.push(timeLabel);
+                    trafficChart.data.datasets[0].data.push(txGB.toFixed(3));
+                    trafficChart.data.datasets[1].data.push(rxGB.toFixed(3));
 
-                if (trafficChart.data.labels.length > historyLength) {
-                    trafficChart.data.labels.shift();
-                    trafficChart.data.datasets[0].data.shift();
-                    trafficChart.data.datasets[1].data.shift();
+                    if (trafficChart.data.labels.length > LIVE_HISTORY) {
+                        trafficChart.data.labels.shift();
+                        trafficChart.data.datasets[0].data.shift();
+                        trafficChart.data.datasets[1].data.shift();
+                    }
+                    trafficChart.update('none');
                 }
-                trafficChart.update('none');
 
                 // Update time
                 document.getElementById('last-update').textContent = new Date().toLocaleString('de-DE');
@@ -419,7 +512,7 @@
         // Initialize and start
         initCharts();
         updateDashboard();
-        setInterval(updateDashboard, 5000);
+        setInterval(updateDashboard, 1000); // Update every second for live traffic
     </script>
 </body>
 </html>
