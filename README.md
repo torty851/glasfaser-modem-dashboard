@@ -1,6 +1,6 @@
 # Glasfaser Modem 2 Status Dashboard
 
-![Dashboard Preview](gfmd.png)
+![Dashboard Preview](dashboard.png)
 
 Real-time monitoring dashboard for Telekom Glasfaser-Modem 2.
 
