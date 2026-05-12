@@ -1,0 +1,6 @@
+FROM node:18-alpine
+WORKDIR /app
+RUN npm init -y && npm install express node-fetch@2
+COPY prometheus.js .
+EXPOSE 9091
+CMD ["node", "prometheus.js"]
